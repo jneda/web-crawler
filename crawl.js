@@ -1,5 +1,38 @@
 const { JSDOM } = require("jsdom");
 
+async function crawlPage(currentURL) {
+  if (!currentURL) {
+    console.log(`[crawlPage] Invalid URL provided, aborting.`);
+    return;
+  }
+
+  console.log(`[crawlPage] Starting crawl of ${currentURL}...`);
+
+  try {
+    const response = await fetch(`https://${currentURL}`);
+
+    if (response.status !== 200) {
+      console.log(
+        `[crawlPage] fetch failed with status code ${response.status} on page: ${currentURL}.`
+      );
+      return;
+    }
+
+    const contentType = response.headers.get("Content-Type");
+    if (!contentType.match(/html/)) {
+      console.log(
+        `[crawlPage] Fetched content is not HTML but instead of type: "${contentType}" on page: "${currentURL}".`
+      );
+      return;
+    }
+
+    const html = await response.text();
+    // console.log(`[crawlPage] Response body:\n${html}`);
+  } catch (e) {
+    console.log(`[crawlPage] error: ${e.message} on page: ${currentURL}.`);
+  }
+}
+
 function getURLsFromHTML(htmlBody, baseURL) {
   const urls = [];
 
@@ -27,10 +60,15 @@ function getURLsFromHTML(htmlBody, baseURL) {
 }
 
 function normalizeURL(urlString) {
-  const { hostname, pathname } = new URL(urlString);
-  let normalized = `${hostname}${pathname}`;
-  if (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
-  return normalized;
+  try {
+    const { hostname, pathname } = new URL(urlString);
+    let normalized = `${hostname}${pathname}`;
+    if (normalized.endsWith("/")) normalized = normalized.slice(0, -1);
+    return normalized;
+  } catch (e) {
+    console.log(`[nomralizeURL]: ${e.message}.`);
+    return null;
+  }
 }
 
-module.exports = { getURLsFromHTML, normalizeURL };
+module.exports = { crawlPage, getURLsFromHTML, normalizeURL };

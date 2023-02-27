@@ -28,6 +28,13 @@ test("normalizeURL to lowercase", () => {
   expect(actual).toEqual(expected);
 });
 
+test("normalizeURL should exit gracefully", () => {
+  const input = "crap*%";
+  const actual = normalizeURL(input);
+  const expected = null;
+  expect(actual).toEqual(expected);
+});
+
 test("getURLsFromHTML get absolute URL", () => {
   const htmlBody = `
     <html>
