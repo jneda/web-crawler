@@ -1,4 +1,4 @@
-const { getURLsFromHTML, normalizeURL } = require("./crawl");
+const { getURLsFromHTML, validateURL, normalizeURL } = require("./crawl");
 
 test("normalizeURL strip https protocol", () => {
   const input = "https://blog.boot.dev/hello";
@@ -38,7 +38,7 @@ test("getURLsFromHTML get absolute URL", () => {
   `;
   const baseURL = "https://blog.boot.dev";
   const actual = getURLsFromHTML(htmlBody, baseURL);
-  const expected = ["https://blog.boot.dev/"];
+  const expected = ["https://blog.boot.dev"];
   expect(actual).toEqual(expected);
 });
 
@@ -66,7 +66,7 @@ test("getURLsFromHTML get relative URL", () => {
   `;
   const baseURL = "https://blog.boot.dev";
   const actual = getURLsFromHTML(htmlBody, baseURL);
-  const expected = ["https://blog.boot.dev/posts/"];
+  const expected = ["https://blog.boot.dev/posts"];
   expect(actual).toEqual(expected);
 });
 
@@ -99,5 +99,19 @@ test("getURLsFromHTML don't get invalid URL", () => {
   const baseURL = "https://blog.boot.dev";
   const actual = getURLsFromHTML(htmlBody, baseURL);
   const expected = [];
+  expect(actual).toEqual(expected);
+});
+
+test("validateURL returns valid URL string", () => {
+  const urlString = "https://blog.boot.dev";
+  const actual = validateURL(urlString);
+  const expected = "https://blog.boot.dev";
+  expect(actual).toEqual(expected);
+});
+
+test("validateURL returns false when given invalid URL string", () => {
+  const urlString = "https://caca";
+  const actual = validateURL(urlString);
+  const expected = false;
   expect(actual).toEqual(expected);
 });

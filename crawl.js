@@ -1,5 +1,20 @@
 const { JSDOM } = require("jsdom");
 
+async function crawlPage(baseURL) {
+  if (!validateURL(baseURL)) {
+    return console.log("[crawlPage] Invalid URL.");
+  }
+
+  const response = await fetch(baseURL);
+  if (!response) {
+    return console.log("[crawlPage] Could not fetch URL.");
+  }
+
+  const html = await response.text();
+  const urls = getURLsFromHTML(html, baseURL)
+  console.table(urls);
+}
+
 function getURLsFromHTML(htmlBody, baseURL) {
   const urls = [];
 
@@ -16,14 +31,28 @@ function getURLsFromHTML(htmlBody, baseURL) {
     }
 
     // check if URL is valid
-    try {
-      const url = new URL(urlString);
-      urls.push(url.href);
-    } catch (e) {
-      console.log(`[getURLsFromHTML] ignoring invalid URL "${urlString}"`);
+    const url = validateURL(urlString);
+    if (url) {
+      urls.push(url);
     }
   }
   return urls;
+}
+
+function validateURL(urlString) {
+  try {
+    const url = new URL(urlString);
+    if (!url.hostname.includes(".")) {
+      throw new Error("No top level domain in hostname.");
+    }
+    let validated = url.href;
+    if (validated.endsWith("/")) validated = validated.slice(0, -1);
+    // console.log(`[validateURL] parsed URL: "${validated}"`);
+    return `${validated}`;
+  } catch (e) {
+    // console.log(`[validateURL] ignoring invalid URL: "${urlString}"`);
+    return false;
+  }
 }
 
 function normalizeURL(urlString) {
@@ -33,4 +62,4 @@ function normalizeURL(urlString) {
   return normalized;
 }
 
-module.exports = { getURLsFromHTML, normalizeURL };
+module.exports = { crawlPage, getURLsFromHTML, validateURL, normalizeURL };
