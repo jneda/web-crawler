@@ -1,30 +1,27 @@
-const { crawlPage, normalizeURL } = require("./crawl");
+const { crawlPage, validateURL } = require("./crawl");
 
-function main() {
-  if (process.argv.length < 3) {
-    console.log("No website provided.");
-    process.exit(1);
+async function main() {
+  const args = process.argv;
+  if (args.length !== 3) {
+    let message;
+    if (args.length < 3) {
+      message = "Too few";
+    } else {
+      message = "Too many";
+    }
+    return console.log(`${message} arguments.`);
   }
 
-  if (process.argv.length > 3) {
-    console.log("Too many command line arguments.");
-    process.exit(1);
+  const urlString = args[2];
+  if (!validateURL(urlString)) {
+    return console.log("Invalid URL.");
   }
 
-  const urlString = process.argv[2];
+  console.log(`Crawling on ${urlString}...`);
+  const pagesCount = await crawlPage(urlString, urlString, {});
 
-  console.log(`Starting crawl of ${urlString}...`);
-
-  let baseURL;
-  try {
-    baseURL = normalizeURL(urlString);
-    if (baseURL) console.log(baseURL);
-  } catch (e) {
-    console.error(`[main]: ${e.message}.`);
-    process.exit(1);
-  }
-
-  crawlPage(baseURL);
+  console.log("\n-- FINAL RESULTS --");
+  console.table(pagesCount);
 }
 
 main();
